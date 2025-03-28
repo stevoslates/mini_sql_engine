@@ -16,9 +16,11 @@ class Table:
                 key = row[self.index_column]
                 self.index.insert(key, i)  # store row index as value
 
-    def select():
-        pass
+    def select(self, column, value):
+        if column == self.index_column:
+            return self.index.search(value)
+        else:
+            return [i for i, row in enumerate(self.rows) if row[column] == value]
 
-    def select_where():
-        pass
+    
 

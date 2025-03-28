@@ -1,4 +1,5 @@
 from lark import Lark, Transformer
+from lark.exceptions import UnexpectedToken
 
 sql_grammar = r"""
     start: select_stmt
@@ -20,14 +21,19 @@ sql_grammar = r"""
     %import common.ESCAPED_STRING
     %import common.WS
     %ignore WS
+    %ignore ";" // ignore semicolons in the grammar
 """
 
 class SQLTransformer(Transformer):
+    def start(self, items):
+        return items[0]
+        
     def select_stmt(self, args):
+        table_token = args[1]
         return {
             "ACTION": "SELECT",
             "COLUMNS": args[0],
-            "TABLE": args[1],
+            "TABLE": str(table_token),
             "WHERE": args[2] if len(args) > 2 else None
         }
 
@@ -44,9 +50,18 @@ class SQLTransformer(Transformer):
         return cond[0]
 
     def condition(self, args):
-        return {"column": str(args[0]), "value": args[1][1:-1]}  # strip quotes
+        return {"column": str(args[0]), "value": str(args[1]).strip("'\"")}  # strip quotes
 
     def value(self, val):
         return val[0]
 
 parser = Lark(sql_grammar, parser="lalr", transformer=SQLTransformer())
+
+def safe_parse(query: str):
+    try:
+        return parser.parse(query)
+    except UnexpectedToken as e:
+        return {"error": f"Syntax error at token '{e.token.value}' (expected one of: {', '.join(e.expected)})"}
+    except Exception as e:
+        return {"error": f"Unknown parsing error: {str(e)}"}
+    
