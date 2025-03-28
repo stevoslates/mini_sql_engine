@@ -1,4 +1,5 @@
 from tables import Table
+from sql_parser import parser
 import json
 
 
@@ -9,5 +10,7 @@ if __name__ == "__main__":
     # Create table with B-tree index on 'email'
     table = Table("Users", data, index_column="email")
 
-    row_id = table.index.search("eve@example.com")
-    print(table.rows[row_id])
+    sql_query = input("<mini-sql>: ")
+    parsed_query = parser.parse(sql_query)
+    print(parsed_query)
+    

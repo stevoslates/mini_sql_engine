@@ -7,6 +7,7 @@ class Table:
     def __init__(self, name, rows, index_column=None):
         self.name = name
         self.rows = rows
+        self.columns = list(rows[0].keys()) if rows else []
         self.index_column = index_column
         self.index = BTree()
 
