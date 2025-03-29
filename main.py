@@ -1,47 +1,41 @@
 from tables import Table
 from sql_parser import safe_parse
 from validator import validate_query
+from query_engine import execute_query
 import json
 
 
-if __name__ == "__main__":
+def main():
     with open("data/users.json") as f:
         data = json.load(f)
 
-    # Create table with B-tree index on 'email'
     table = Table("Users", data, index_column="email")
 
-    sql_query = input("<mini-sql>: ")
-    parsed_query = safe_parse(sql_query)
-    errors = validate_query(parsed_query, table)
+    print("Welcome to MiniSQL. Type 'exit' to quit.\n")
 
-    if errors:
-        print("Errors:")
-        for error in errors:
-            print(error)
-        # Skip executing the query
-        exit()
+    while True:
+        sql_query = input("<mini-sql>: ").strip()
+        if sql_query.lower() in ("exit", "quit"):
+            break
+        if not sql_query:
+            continue
 
-    #Execute the query
-    # Should do the WHERE clause first, then the SELECT clause
-    if parsed_query["WHERE"]:
-        column = parsed_query["WHERE"]["column"]
-        value = parsed_query["WHERE"]["value"]
+        parsed_query = safe_parse(sql_query)
 
-        # Filter rows using index or linear scan
-        row_ids = [table.select(column, value)]
-        filtered_rows = [table.rows[i] for i in row_ids]
-    else:
-        # No WHERE clause = return all rows
-        filtered_rows = table.rows
+        if "error" in parsed_query:
+            print("Parser Error:", parsed_query["error"])
+            continue
 
+        errors = validate_query(parsed_query, table)
+        if errors:
+            print("Validation Errors:")
+            for error in errors:
+                print("-", error)
+            continue
 
-    if parsed_query["COLUMNS"] == "*":
-        results = filtered_rows
-    else:
-        selected_cols = parsed_query["COLUMNS"]
-        results = [{col: row[col] for col in selected_cols} for row in filtered_rows]
+        results = execute_query(parsed_query, table)
+        for row in results:
+            print(row)
 
-    # Print or return results
-    for row in results:
-        print(row)
+if __name__ == "__main__":
+    main()

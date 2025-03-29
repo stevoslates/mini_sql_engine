@@ -21,7 +21,7 @@ class BTree:
         else:
             # Safe to insert directly into root
             self.insert_non_full(self.root, key, value)
-        print("Inserted", key, value)
+        
 
     def insert_non_full(self, node, key, value):
         if node.leaf:
