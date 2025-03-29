@@ -19,6 +19,8 @@ if __name__ == "__main__":
         print("Errors:")
         for error in errors:
             print(error)
+        # Skip executing the query
+        exit()
 
     #Execute the query
     # Should do the WHERE clause first, then the SELECT clause
